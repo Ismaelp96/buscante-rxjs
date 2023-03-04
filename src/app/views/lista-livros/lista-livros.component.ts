@@ -1,4 +1,11 @@
-import { switchMap, map, tap, filter, debounceTime } from 'rxjs';
+import {
+  switchMap,
+  map,
+  tap,
+  filter,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs';
 import { Component } from '@angular/core';
 import { LivroService } from 'src/app/service/livro.service';
 import { Item } from 'src/app/models/interfaces';
@@ -21,6 +28,7 @@ export class ListaLivrosComponent {
     debounceTime(PAUSE),
     filter((valorDigitado) => valorDigitado.length >= 3),
     tap((retornoAPI) => console.log('Fluxo inicial', retornoAPI)),
+    distinctUntilChanged(),
     switchMap((valodrDigitado) => this.service.buscar(valodrDigitado)),
     tap((retornoApi) => console.log(retornoApi)),
     map((items) => this.livrosResultadoParaLivros(items))
