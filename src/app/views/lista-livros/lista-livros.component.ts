@@ -5,6 +5,9 @@ import {
   filter,
   debounceTime,
   distinctUntilChanged,
+  catchError,
+  throwError,
+  EMPTY,
 } from 'rxjs';
 import { Component } from '@angular/core';
 import { LivroService } from 'src/app/service/livro.service';
@@ -21,7 +24,7 @@ const PAUSE = 300;
 })
 export class ListaLivrosComponent {
   campoBusca = new FormControl();
-
+  mensagemErro = '';
   constructor(private service: LivroService) {}
 
   livrosEncontrados$ = this.campoBusca.valueChanges.pipe(
@@ -31,7 +34,18 @@ export class ListaLivrosComponent {
     distinctUntilChanged(),
     switchMap((valodrDigitado) => this.service.buscar(valodrDigitado)),
     tap((retornoApi) => console.log(retornoApi)),
-    map((items) => this.livrosResultadoParaLivros(items))
+    map((items) => this.livrosResultadoParaLivros(items)),
+    catchError(() => {
+      this.mensagemErro = 'Ops, ocorreu um erro. Recarregue a aplicação!';
+      return EMPTY;
+      // return throwError(
+      //   () =>
+      //     new Error(
+      //       (this.mensagemErro =
+      //         'Ops, ocorreu um erro. Recarregue a aplicação!')
+      //     )
+      // );
+    })
   );
 
   livrosResultadoParaLivros(items: Item[]): LivroVolumeInfo[] {

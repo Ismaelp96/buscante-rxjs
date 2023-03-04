@@ -7,7 +7,7 @@ import { Observable, tap, map } from 'rxjs';
   providedIn: 'root',
 })
 export class LivroService {
-  private readonly API = 'https://www.googleapis.com/books/v1/volumes';
+  private readonly API = 'https://www.googleapis.com/books/v1/volums';
 
   constructor(private http: HttpClient) {}
 
