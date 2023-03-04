@@ -1,3 +1,4 @@
+import { LivrosResultado } from './../../models/interfaces';
 import {
   switchMap,
   map,
@@ -8,6 +9,7 @@ import {
   catchError,
   throwError,
   EMPTY,
+  of,
 } from 'rxjs';
 import { Component } from '@angular/core';
 import { LivroService } from 'src/app/service/livro.service';
@@ -25,7 +27,22 @@ const PAUSE = 300;
 export class ListaLivrosComponent {
   campoBusca = new FormControl();
   mensagemErro = '';
+  livrosResultado: LivrosResultado;
+
   constructor(private service: LivroService) {}
+
+  totalDeLivros$ = this.campoBusca.valueChanges.pipe(
+    debounceTime(PAUSE),
+    filter((valorDigitado) => valorDigitado.length >= 3),
+    tap((retornoAPI) => console.log('Fluxo inicial', retornoAPI)),
+    distinctUntilChanged(),
+    switchMap((valodrDigitado) => this.service.buscar(valodrDigitado)),
+    map((resultado) => (this.livrosResultado = resultado)),
+    catchError((erro) => {
+      console.log(erro);
+      return of();
+    })
+  );
 
   livrosEncontrados$ = this.campoBusca.valueChanges.pipe(
     debounceTime(PAUSE),
@@ -34,17 +51,19 @@ export class ListaLivrosComponent {
     distinctUntilChanged(),
     switchMap((valodrDigitado) => this.service.buscar(valodrDigitado)),
     tap((retornoApi) => console.log(retornoApi)),
+    map((resultado) => resultado.items ?? []),
     map((items) => this.livrosResultadoParaLivros(items)),
-    catchError(() => {
-      this.mensagemErro = 'Ops, ocorreu um erro. Recarregue a aplicação!';
-      return EMPTY;
-      // return throwError(
-      //   () =>
-      //     new Error(
-      //       (this.mensagemErro =
-      //         'Ops, ocorreu um erro. Recarregue a aplicação!')
-      //     )
-      // );
+    catchError((erro) => {
+      // this.mensagemErro = 'Ops, ocorreu um erro. Recarregue a aplicação!';
+      // return EMPTY;
+      console.log(erro);
+      return throwError(
+        () =>
+          new Error(
+            (this.mensagemErro =
+              'Ops, ocorreu um erro. Recarregue a aplicação!')
+          )
+      );
     })
   );
 
